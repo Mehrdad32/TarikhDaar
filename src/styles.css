@@ -275,3 +275,49 @@ h1 {
     padding: 20px;
   }
 }
+
+
+.calendar-switch {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #e4e4e7;
+  border-radius: 14px;
+  background: #f4f4f5;
+}
+
+.calendar-switch button {
+  min-height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #71717a;
+  padding: 0 13px;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+
+.calendar-switch button:hover {
+  color: #18181b;
+}
+
+.calendar-switch button.active {
+  background: white;
+  color: #18181b;
+  box-shadow: 0 1px 3px rgba(24, 24, 27, 0.12);
+}
+
+@media (max-width: 520px) {
+  .section-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .calendar-switch {
+    width: 100%;
+  }
+
+  .calendar-switch button {
+    flex: 1;
+  }
+}
