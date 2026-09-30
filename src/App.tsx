@@ -114,7 +114,7 @@ export default function App() {
           <span className="status-dot" aria-hidden="true" />
           <span>LOCAL / OFFLINE</span>
           <span className="status-divider" aria-hidden="true">·</span>
-          <span>V6 ALPHA</span>
+          <span>V6 ALPHA.2</span>
         </div>
       </header>
 
