@@ -6,29 +6,30 @@ import {
   validatePersianDate,
   type CalendarDate,
 } from './core/persian'
+import {
+  calendarDigitSystem,
+  formatGregorianLong,
+  formatNumericDate,
+  formatPersianLong,
+  gregorianMonthNames,
+  persianMonthNames,
+} from './i18n/calendar-format'
+import {
+  localizeDigits,
+  parseLocalizedInteger,
+  sanitizeDateField,
+} from './i18n/numerals'
 import './styles.css'
 
 type CalendarKind = 'gregorian' | 'persian'
 
-const gregorianMonthNames = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-]
+function toFields(date: CalendarDate, calendar: CalendarKind) {
+  const system = calendarDigitSystem(calendar)
 
-const persianMonthNames = [
-  'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
-  'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند',
-]
-
-function toNumber(value: string): number {
-  return Number.parseInt(value, 10)
-}
-
-function toFields(date: CalendarDate) {
   return {
-    day: String(date.day),
+    day: localizeDigits(date.day, system),
     month: String(date.month),
-    year: String(date.year),
+    year: localizeDigits(date.year, system),
   }
 }
 
@@ -38,8 +39,14 @@ export default function App() {
   const [month, setMonth] = useState('1')
   const [year, setYear] = useState('1991')
 
+  const digitSystem = calendarDigitSystem(sourceCalendar)
+
   const sourceDate = useMemo(
-    () => ({ year: toNumber(year), month: toNumber(month), day: toNumber(day) }),
+    () => ({
+      year: parseLocalizedInteger(year),
+      month: Number.parseInt(month, 10),
+      day: parseLocalizedInteger(day),
+    }),
     [day, month, year],
   )
 
@@ -68,13 +75,24 @@ export default function App() {
     if (next === sourceCalendar) return
 
     if (!validationError && converted) {
-      const nextFields = toFields(converted)
+      const nextFields = toFields(converted, next)
       setDay(nextFields.day)
       setMonth(nextFields.month)
       setYear(nextFields.year)
+    } else {
+      setDay((value) => sanitizeDateField(value, calendarDigitSystem(next)))
+      setYear((value) => sanitizeDateField(value, calendarDigitSystem(next)))
     }
 
     setSourceCalendar(next)
+  }
+
+  function updateDay(value: string) {
+    setDay(sanitizeDateField(value, digitSystem))
+  }
+
+  function updateYear(value: string) {
+    setYear(sanitizeDateField(value, digitSystem))
   }
 
   return (
@@ -143,15 +161,16 @@ export default function App() {
             </button>
           </div>
 
-          <div className="date-inputs">
+          <div className={`date-inputs ${sourceCalendar === 'persian' ? 'calendar-persian' : 'calendar-gregorian'}`}>
             <label className="field field-day">
               <span>روز</span>
               <input
                 value={day}
-                onChange={(event) => setDay(event.target.value)}
+                onChange={(event) => updateDay(event.target.value)}
                 inputMode="numeric"
                 autoComplete="off"
                 aria-invalid={Boolean(validationError)}
+                lang={sourceCalendar === 'persian' ? 'fa' : 'en'}
               />
             </label>
 
@@ -161,12 +180,18 @@ export default function App() {
                 value={month}
                 onChange={(event) => setMonth(event.target.value)}
                 dir={sourceCalendar === 'gregorian' ? 'ltr' : 'rtl'}
+                lang={sourceCalendar === 'persian' ? 'fa' : 'en'}
               >
                 {monthNames.map((name, index) => {
                   const number = index + 1
+                  const displayNumber = localizeDigits(
+                    String(number).padStart(2, '0'),
+                    digitSystem,
+                  )
+
                   return (
                     <option key={name} value={number}>
-                      {String(number).padStart(2, '0')} · {name}
+                      {displayNumber} · {name}
                     </option>
                   )
                 })}
@@ -177,10 +202,11 @@ export default function App() {
               <span>سال</span>
               <input
                 value={year}
-                onChange={(event) => setYear(event.target.value)}
+                onChange={(event) => updateYear(event.target.value)}
                 inputMode="numeric"
                 autoComplete="off"
                 aria-invalid={Boolean(validationError)}
+                lang={sourceCalendar === 'persian' ? 'fa' : 'en'}
               />
             </label>
           </div>
@@ -220,21 +246,21 @@ export default function App() {
               targetCalendar === 'persian' ? (
                 <>
                   <span className="result-label">هجری خورشیدی · Persian</span>
-                  <strong className="result-primary calendar-persian">
-                    {converted.day} {persianMonthNames[converted.month - 1]} {converted.year}
+                  <strong className="result-primary calendar-persian" lang="fa">
+                    {formatPersianLong(converted)}
                   </strong>
-                  <span className="result-numeric calendar-persian" dir="ltr">
-                    {converted.year}/{String(converted.month).padStart(2, '0')}/{String(converted.day).padStart(2, '0')}
+                  <span className="result-numeric calendar-persian" dir="rtl" lang="fa">
+                    {formatNumericDate(converted, 'persian')}
                   </span>
                 </>
               ) : (
                 <>
                   <span className="result-label">میلادی · Gregorian</span>
-                  <strong className="result-primary calendar-gregorian" dir="ltr">
-                    {converted.day} {gregorianMonthNames[converted.month - 1]} {converted.year}
+                  <strong className="result-primary calendar-gregorian" dir="ltr" lang="en">
+                    {formatGregorianLong(converted)}
                   </strong>
-                  <span className="result-numeric calendar-gregorian" dir="ltr">
-                    {converted.year}/{String(converted.month).padStart(2, '0')}/{String(converted.day).padStart(2, '0')}
+                  <span className="result-numeric calendar-gregorian" dir="ltr" lang="en">
+                    {formatNumericDate(converted, 'gregorian')}
                   </span>
                 </>
               )
