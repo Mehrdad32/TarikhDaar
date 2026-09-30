@@ -1,7 +1,14 @@
 import { useMemo, useState } from 'react'
 import { validateGregorianDate } from './core/gregorian'
-import { gregorianToPersian } from './core/persian'
+import {
+  gregorianToPersian,
+  persianToGregorian,
+  validatePersianDate,
+  type CalendarDate,
+} from './core/persian'
 import './styles.css'
+
+type CalendarKind = 'gregorian' | 'persian'
 
 const gregorianMonthNames = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -17,7 +24,16 @@ function toNumber(value: string): number {
   return Number.parseInt(value, 10)
 }
 
+function toFields(date: CalendarDate) {
+  return {
+    day: String(date.day),
+    month: String(date.month),
+    year: String(date.year),
+  }
+}
+
 export default function App() {
+  const [sourceCalendar, setSourceCalendar] = useState<CalendarKind>('gregorian')
   const [day, setDay] = useState('2')
   const [month, setMonth] = useState('1')
   const [year, setYear] = useState('1991')
@@ -32,13 +48,34 @@ export default function App() {
       return 'روز، ماه و سال را کامل وارد کنید.'
     }
 
-    return validateGregorianDate(sourceDate)
-  }, [day, month, sourceDate, year])
+    return sourceCalendar === 'gregorian'
+      ? validateGregorianDate(sourceDate)
+      : validatePersianDate(sourceDate)
+  }, [day, month, sourceCalendar, sourceDate, year])
 
-  const converted = useMemo(
-    () => (validationError ? null : gregorianToPersian(sourceDate)),
-    [sourceDate, validationError],
-  )
+  const converted = useMemo(() => {
+    if (validationError) return null
+
+    return sourceCalendar === 'gregorian'
+      ? gregorianToPersian(sourceDate)
+      : persianToGregorian(sourceDate)
+  }, [sourceCalendar, sourceDate, validationError])
+
+  const monthNames = sourceCalendar === 'gregorian' ? gregorianMonthNames : persianMonthNames
+  const targetCalendar: CalendarKind = sourceCalendar === 'gregorian' ? 'persian' : 'gregorian'
+
+  function changeSourceCalendar(next: CalendarKind) {
+    if (next === sourceCalendar) return
+
+    if (!validationError && converted) {
+      const nextFields = toFields(converted)
+      setDay(nextFields.day)
+      setMonth(nextFields.month)
+      setYear(nextFields.year)
+    }
+
+    setSourceCalendar(next)
+  }
 
   return (
     <main className="shell">
@@ -60,9 +97,27 @@ export default function App() {
         <div className="section-heading">
           <div>
             <span className="section-kicker">تاریخ مبدأ</span>
-            <h2 id="source-title">میلادی</h2>
+            <h2 id="source-title">
+              {sourceCalendar === 'gregorian' ? 'میلادی' : 'خورشیدی'}
+            </h2>
           </div>
-          <span className="calendar-badge">Gregorian</span>
+
+          <div className="calendar-switch" aria-label="انتخاب تقویم مبدأ">
+            <button
+              type="button"
+              className={sourceCalendar === 'gregorian' ? 'active' : ''}
+              onClick={() => changeSourceCalendar('gregorian')}
+            >
+              میلادی
+            </button>
+            <button
+              type="button"
+              className={sourceCalendar === 'persian' ? 'active' : ''}
+              onClick={() => changeSourceCalendar('persian')}
+            >
+              خورشیدی
+            </button>
+          </div>
         </div>
 
         <div className="date-inputs">
@@ -80,7 +135,7 @@ export default function App() {
           <label className="field field-month">
             <span>ماه</span>
             <select value={month} onChange={(event) => setMonth(event.target.value)}>
-              {gregorianMonthNames.map((name, index) => {
+              {monthNames.map((name, index) => {
                 const number = index + 1
                 return (
                   <option key={name} value={number}>
@@ -117,24 +172,40 @@ export default function App() {
         <div className="results-heading">
           <div>
             <span className="section-kicker">نتیجه</span>
-            <h2 id="results-title">تقویم خورشیدی</h2>
+            <h2 id="results-title">
+              {targetCalendar === 'persian' ? 'تقویم خورشیدی' : 'تقویم میلادی'}
+            </h2>
           </div>
         </div>
 
         <article className={`result-card ${converted ? '' : 'result-card-disabled'}`}>
           {converted ? (
-            <>
-              <span className="result-label">هجری خورشیدی · Persian</span>
-              <strong className="result-primary">
-                {converted.day} {persianMonthNames[converted.month - 1]} {converted.year}
-              </strong>
-              <span className="result-numeric" dir="ltr">
-                {converted.year}/{String(converted.month).padStart(2, '0')}/{String(converted.day).padStart(2, '0')}
-              </span>
-            </>
+            targetCalendar === 'persian' ? (
+              <>
+                <span className="result-label">هجری خورشیدی · Persian</span>
+                <strong className="result-primary">
+                  {converted.day} {persianMonthNames[converted.month - 1]} {converted.year}
+                </strong>
+                <span className="result-numeric" dir="ltr">
+                  {converted.year}/{String(converted.month).padStart(2, '0')}/{String(converted.day).padStart(2, '0')}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="result-label">میلادی · Gregorian</span>
+                <strong className="result-primary" dir="ltr">
+                  {converted.day} {gregorianMonthNames[converted.month - 1]} {converted.year}
+                </strong>
+                <span className="result-numeric" dir="ltr">
+                  {converted.year}/{String(converted.month).padStart(2, '0')}/{String(converted.day).padStart(2, '0')}
+                </span>
+              </>
+            )
           ) : (
             <>
-              <span className="result-label">هجری خورشیدی · Persian</span>
+              <span className="result-label">
+                {targetCalendar === 'persian' ? 'هجری خورشیدی · Persian' : 'میلادی · Gregorian'}
+              </span>
               <strong className="result-placeholder">تاریخ مبدأ را اصلاح کنید</strong>
               <span className="result-numeric">—</span>
             </>
