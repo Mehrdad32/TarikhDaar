@@ -100,6 +100,35 @@ function jdnToPersian(jdn: number): CalendarDate {
   return { year: jy, month: jm, day: jd }
 }
 
+export function isPersianLeapYear(year: number): boolean {
+  if (!Number.isInteger(year) || year < 1 || year > 3177) return false
+  return jalCal(year).leap === 0
+}
+
+export function getPersianDaysInMonth(year: number, month: number): number {
+  if (month < 1 || month > 12) return 0
+  if (month <= 6) return 31
+  if (month <= 11) return 30
+  return isPersianLeapYear(year) ? 30 : 29
+}
+
+export function validatePersianDate(date: CalendarDate): string | null {
+  if (!Number.isInteger(date.year) || date.year < 1 || date.year > 3177) {
+    return 'سال خورشیدی باید عددی بین 1 تا 3177 باشد.'
+  }
+
+  if (!Number.isInteger(date.month) || date.month < 1 || date.month > 12) {
+    return 'ماه خورشیدی باید بین 1 تا 12 باشد.'
+  }
+
+  const maxDay = getPersianDaysInMonth(date.year, date.month)
+  if (!Number.isInteger(date.day) || date.day < 1 || date.day > maxDay) {
+    return `ماه انتخاب‌شده در سال ${date.year} فقط ${maxDay} روز دارد.`
+  }
+
+  return null
+}
+
 export function gregorianToPersian(date: CalendarDate): CalendarDate {
   return jdnToPersian(gregorianToJdn(date.year, date.month, date.day))
 }
