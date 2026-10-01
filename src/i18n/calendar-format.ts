@@ -1,4 +1,5 @@
 import type { CalendarDate } from '../core/persian'
+import { getGregorianWeekdayIndex } from '../core/date-utils'
 import { localizeDigits, type DigitSystem } from './numerals'
 
 export const gregorianMonthNames = [
@@ -9,6 +10,14 @@ export const gregorianMonthNames = [
 export const persianMonthNames = [
   'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
   'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند',
+] as const
+
+const gregorianWeekdayNames = [
+  'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
+] as const
+
+const persianWeekdayNames = [
+  'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه',
 ] as const
 
 export function calendarDigitSystem(calendar: 'gregorian' | 'persian' | 'hijri'): DigitSystem {
@@ -37,4 +46,15 @@ export function formatGregorianLong(date: CalendarDate): string {
 export function formatPersianLong(date: CalendarDate): string {
   const raw = `${date.day} ${persianMonthNames[date.month - 1]} ${date.year}`
   return localizeDigits(raw, 'persian')
+}
+
+export function formatWeekday(
+  gregorianDate: CalendarDate,
+  calendar: 'gregorian' | 'persian',
+): string {
+  const weekdayIndex = getGregorianWeekdayIndex(gregorianDate)
+
+  return calendar === 'persian'
+    ? persianWeekdayNames[weekdayIndex]
+    : gregorianWeekdayNames[weekdayIndex]
 }
