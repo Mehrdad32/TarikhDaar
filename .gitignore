@@ -7,3 +7,7 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# Tauri / Rust
+src-tauri/target/
+src-tauri/icons/
