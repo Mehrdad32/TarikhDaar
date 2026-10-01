@@ -60,10 +60,11 @@ async function copyText(text: string): Promise<void> {
 }
 
 export default function App() {
+  const [initialDate] = useState<CalendarDate>(() => getTodayGregorian())
   const [sourceCalendar, setSourceCalendar] = useState<CalendarKind>('gregorian')
-  const [day, setDay] = useState('2')
-  const [month, setMonth] = useState('1')
-  const [year, setYear] = useState('1991')
+  const [day, setDay] = useState(() => String(initialDate.day))
+  const [month, setMonth] = useState(() => String(initialDate.month))
+  const [year, setYear] = useState(() => String(initialDate.year))
   const [copyState, setCopyState] = useState<CopyState>('idle')
 
   const digitSystem = calendarDigitSystem(sourceCalendar)
@@ -216,7 +217,7 @@ export default function App() {
           <span className="status-dot" aria-hidden="true" />
           <span>LOCAL / OFFLINE</span>
           <span className="status-divider" aria-hidden="true">·</span>
-          <span>V6 ALPHA.3</span>
+          <span>V6 ALPHA.3.1</span>
         </div>
       </header>
 
@@ -394,23 +395,43 @@ export default function App() {
             )}
           </div>
 
-          <div className="result-actions">
+          <div className="result-actions" aria-label="عملیات نتیجه">
             <button
               type="button"
-              className={`action-button action-primary ${copyState === 'copied' ? 'success' : ''}`}
+              className={`icon-action ${copyState === 'copied' ? 'success' : ''} ${copyState === 'error' ? 'error' : ''}`}
               onClick={copyResult}
               disabled={!converted}
+              aria-label={copyState === 'copied' ? 'کپی شد' : copyState === 'error' ? 'کپی انجام نشد' : 'کپی نتیجه'}
+              title={copyState === 'copied' ? 'کپی شد' : copyState === 'error' ? 'کپی انجام نشد' : 'کپی نتیجه'}
+              data-tooltip={copyState === 'copied' ? 'کپی شد' : copyState === 'error' ? 'کپی انجام نشد' : 'کپی نتیجه'}
             >
-              {copyState === 'copied' ? 'کپی شد ✓' : copyState === 'error' ? 'کپی نشد' : 'کپی نتیجه'}
+              {copyState === 'copied' ? (
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m5 12 4 4L19 6" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="9" y="9" width="10" height="10" rx="2" />
+                  <path d="M15 9V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+                </svg>
+              )}
             </button>
 
             <button
               type="button"
-              className="action-button"
+              className="icon-action"
               onClick={() => changeSourceCalendar(targetCalendar)}
               disabled={!converted}
+              aria-label="این تاریخ را مبدأ کن"
+              title="این تاریخ را مبدأ کن"
+              data-tooltip="این تاریخ را مبدأ کن"
             >
-              مبدأ کن
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7 7h11l-3-3" />
+                <path d="m18 7-3 3" />
+                <path d="M17 17H6l3 3" />
+                <path d="m6 17 3-3" />
+              </svg>
             </button>
           </div>
 
