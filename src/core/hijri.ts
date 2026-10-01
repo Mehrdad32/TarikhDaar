@@ -80,13 +80,26 @@ export function gregorianToHijri(
   adjustment = 0,
 ): CalendarDate {
   const jdn = gregorianToJdn(date.year, date.month, date.day)
-  return jdnToHijriRaw(jdn + adjustment)
+  const converted = jdnToHijriRaw(jdn + adjustment)
+  const error = validateHijriDate(converted)
+
+  if (error) {
+    throw new RangeError(error)
+  }
+
+  return converted
 }
 
 export function hijriToGregorian(
   date: CalendarDate,
   adjustment = 0,
 ): CalendarDate {
+  const error = validateHijriDate(date)
+
+  if (error) {
+    throw new RangeError(error)
+  }
+
   const jdn = hijriToJdnRaw(date) - adjustment
   return jdnToGregorian(jdn)
 }
