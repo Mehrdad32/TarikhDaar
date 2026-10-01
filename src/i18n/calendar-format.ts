@@ -12,6 +12,11 @@ export const persianMonthNames = [
   'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند',
 ] as const
 
+export const hijriMonthNames = [
+  'محرم', 'صفر', 'ربيع الأول', 'ربيع الآخر', 'جمادى الأولى', 'جمادى الآخرة',
+  'رجب', 'شعبان', 'رمضان', 'شوال', 'ذو القعدة', 'ذو الحجة',
+] as const
+
 const gregorianWeekdayNames = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
 ] as const
@@ -20,7 +25,13 @@ const persianWeekdayNames = [
   'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه',
 ] as const
 
-export function calendarDigitSystem(calendar: 'gregorian' | 'persian' | 'hijri'): DigitSystem {
+const arabicWeekdayNames = [
+  'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت',
+] as const
+
+export type FormattableCalendar = 'gregorian' | 'persian' | 'hijri'
+
+export function calendarDigitSystem(calendar: FormattableCalendar): DigitSystem {
   if (calendar === 'persian') return 'persian'
   if (calendar === 'hijri') return 'arabic'
   return 'latin'
@@ -28,7 +39,7 @@ export function calendarDigitSystem(calendar: 'gregorian' | 'persian' | 'hijri')
 
 export function formatNumericDate(
   date: CalendarDate,
-  calendar: 'gregorian' | 'persian' | 'hijri',
+  calendar: FormattableCalendar,
 ): string {
   const raw = [
     String(date.year),
@@ -48,13 +59,18 @@ export function formatPersianLong(date: CalendarDate): string {
   return localizeDigits(raw, 'persian')
 }
 
+export function formatHijriLong(date: CalendarDate): string {
+  const raw = `${date.day} ${hijriMonthNames[date.month - 1]} ${date.year}`
+  return localizeDigits(raw, 'arabic')
+}
+
 export function formatWeekday(
   gregorianDate: CalendarDate,
-  calendar: 'gregorian' | 'persian',
+  calendar: FormattableCalendar,
 ): string {
   const weekdayIndex = getGregorianWeekdayIndex(gregorianDate)
 
-  return calendar === 'persian'
-    ? persianWeekdayNames[weekdayIndex]
-    : gregorianWeekdayNames[weekdayIndex]
+  if (calendar === 'persian') return persianWeekdayNames[weekdayIndex]
+  if (calendar === 'hijri') return arabicWeekdayNames[weekdayIndex]
+  return gregorianWeekdayNames[weekdayIndex]
 }
