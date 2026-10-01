@@ -1,0 +1,87 @@
+name: Release Windows Desktop
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install frontend dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Generate desktop icons
+        run: npm run desktop:icons
+
+      - name: Read application version
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          "APP_VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Build and publish NSIS installer
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: 'TarikhDaar v__VERSION__'
+          releaseBody: |
+            TarikhDaar 6 Windows Alpha.
+
+            Assets:
+            - Setup EXE: recommended for normal installation.
+            - Portable EXE: runs without installation on supported Windows systems.
+
+            Notes:
+            - Date conversion works offline and uses no remote API.
+            - Windows may show a SmartScreen warning because this alpha build is not yet code-signed.
+            - The portable build requires Microsoft Edge WebView2 to be available on the system.
+          releaseDraft: false
+          prerelease: true
+          args: --bundles nsis
+
+      - name: Upload portable EXE and checksums
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $portableName = "TarikhDaar_${env:APP_VERSION}_x64_portable.exe"
+          Copy-Item "src-tauri/target/release/tarikhdaar.exe" $portableName
+
+          $setup = Get-ChildItem "src-tauri/target/release/bundle/nsis/*-setup.exe" | Select-Object -First 1
+          if (-not $setup) {
+            throw "NSIS setup executable was not found."
+          }
+
+          $portableHash = (Get-FileHash $portableName -Algorithm SHA256).Hash.ToLower()
+          $setupHash = (Get-FileHash $setup.FullName -Algorithm SHA256).Hash.ToLower()
+
+          @(
+            "$portableHash  $portableName",
+            "$setupHash  $($setup.Name)"
+          ) | Set-Content -Encoding ascii SHA256SUMS.txt
+
+          gh release upload "v$env:APP_VERSION" $portableName SHA256SUMS.txt --clobber

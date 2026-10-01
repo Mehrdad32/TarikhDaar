@@ -1,0 +1,19 @@
+[package]
+name = "tarikhdaar"
+version = "6.0.0-alpha.4"
+description = "Offline date converter for Persian, Gregorian and Hijri calendars"
+authors = ["Mehrdad32"]
+edition = "2024"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true
