@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { getTodayGregorian } from './core/date-utils'
 import { validateGregorianDate } from './core/gregorian'
 import {
   gregorianToPersian,
@@ -11,6 +12,7 @@ import {
   formatGregorianLong,
   formatNumericDate,
   formatPersianLong,
+  formatWeekday,
   gregorianMonthNames,
   persianMonthNames,
 } from './i18n/calendar-format'
@@ -22,6 +24,7 @@ import {
 import './styles.css'
 
 type CalendarKind = 'gregorian' | 'persian'
+type CopyState = 'idle' | 'copied' | 'error'
 
 function toFields(date: CalendarDate, calendar: CalendarKind) {
   const system = calendarDigitSystem(calendar)
@@ -33,11 +36,35 @@ function toFields(date: CalendarDate, calendar: CalendarKind) {
   }
 }
 
+async function copyText(text: string): Promise<void> {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text)
+    return
+  }
+
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.setAttribute('readonly', '')
+  textarea.style.position = 'fixed'
+  textarea.style.opacity = '0'
+  textarea.style.pointerEvents = 'none'
+  document.body.appendChild(textarea)
+  textarea.select()
+
+  const copied = document.execCommand('copy')
+  textarea.remove()
+
+  if (!copied) {
+    throw new Error('Clipboard copy failed')
+  }
+}
+
 export default function App() {
   const [sourceCalendar, setSourceCalendar] = useState<CalendarKind>('gregorian')
   const [day, setDay] = useState('2')
   const [month, setMonth] = useState('1')
   const [year, setYear] = useState('1991')
+  const [copyState, setCopyState] = useState<CopyState>('idle')
 
   const digitSystem = calendarDigitSystem(sourceCalendar)
 
@@ -87,17 +114,49 @@ export default function App() {
   const monthNames = sourceCalendar === 'gregorian' ? gregorianMonthNames : persianMonthNames
   const targetCalendar: CalendarKind = sourceCalendar === 'gregorian' ? 'persian' : 'gregorian'
 
+  const canonicalGregorianDate = useMemo(() => {
+    if (displayError || !converted) return null
+
+    return sourceCalendar === 'gregorian' ? sourceDate : converted
+  }, [converted, displayError, sourceCalendar, sourceDate])
+
+  const resultLong = useMemo(() => {
+    if (!converted) return ''
+
+    return targetCalendar === 'persian'
+      ? formatPersianLong(converted)
+      : formatGregorianLong(converted)
+  }, [converted, targetCalendar])
+
+  const resultNumeric = useMemo(() => {
+    if (!converted) return ''
+
+    return formatNumericDate(converted, targetCalendar)
+  }, [converted, targetCalendar])
+
+  const resultWeekday = useMemo(() => {
+    if (!canonicalGregorianDate) return ''
+
+    return formatWeekday(canonicalGregorianDate, targetCalendar)
+  }, [canonicalGregorianDate, targetCalendar])
+
+  function applyDate(date: CalendarDate, calendar: CalendarKind) {
+    const fields = toFields(date, calendar)
+    setDay(fields.day)
+    setMonth(fields.month)
+    setYear(fields.year)
+    setCopyState('idle')
+  }
+
   function changeSourceCalendar(next: CalendarKind) {
     if (next === sourceCalendar) return
 
     if (!displayError && converted) {
-      const nextFields = toFields(converted, next)
-      setDay(nextFields.day)
-      setMonth(nextFields.month)
-      setYear(nextFields.year)
+      applyDate(converted, next)
     } else {
       setDay((value) => sanitizeDateField(value, calendarDigitSystem(next)))
       setYear((value) => sanitizeDateField(value, calendarDigitSystem(next)))
+      setCopyState('idle')
     }
 
     setSourceCalendar(next)
@@ -105,10 +164,37 @@ export default function App() {
 
   function updateDay(value: string) {
     setDay(sanitizeDateField(value, digitSystem))
+    setCopyState('idle')
   }
 
   function updateYear(value: string) {
     setYear(sanitizeDateField(value, digitSystem))
+    setCopyState('idle')
+  }
+
+  function setToday() {
+    const todayGregorian = getTodayGregorian()
+    const todayForSource = sourceCalendar === 'gregorian'
+      ? todayGregorian
+      : gregorianToPersian(todayGregorian)
+
+    applyDate(todayForSource, sourceCalendar)
+  }
+
+  async function copyResult() {
+    if (!converted) return
+
+    const value = [resultLong, resultNumeric].filter(Boolean).join('\n')
+
+    try {
+      await copyText(value)
+      setCopyState('copied')
+      window.setTimeout(() => setCopyState('idle'), 1600)
+    } catch (error) {
+      console.error('Copy failed:', error)
+      setCopyState('error')
+      window.setTimeout(() => setCopyState('idle'), 2200)
+    }
   }
 
   return (
@@ -130,7 +216,7 @@ export default function App() {
           <span className="status-dot" aria-hidden="true" />
           <span>LOCAL / OFFLINE</span>
           <span className="status-divider" aria-hidden="true">·</span>
-          <span>V6 ALPHA.2.1</span>
+          <span>V6 ALPHA.3</span>
         </div>
       </header>
 
@@ -158,22 +244,28 @@ export default function App() {
             </span>
           </div>
 
-          <div className="calendar-switch" aria-label="انتخاب تقویم مبدأ">
-            <button
-              type="button"
-              className={sourceCalendar === 'gregorian' ? 'active' : ''}
-              aria-pressed={sourceCalendar === 'gregorian'}
-              onClick={() => changeSourceCalendar('gregorian')}
-            >
-              میلادی
-            </button>
-            <button
-              type="button"
-              className={sourceCalendar === 'persian' ? 'active' : ''}
-              aria-pressed={sourceCalendar === 'persian'}
-              onClick={() => changeSourceCalendar('persian')}
-            >
-              خورشیدی
+          <div className="source-controls">
+            <div className="calendar-switch" aria-label="انتخاب تقویم مبدأ">
+              <button
+                type="button"
+                className={sourceCalendar === 'gregorian' ? 'active' : ''}
+                aria-pressed={sourceCalendar === 'gregorian'}
+                onClick={() => changeSourceCalendar('gregorian')}
+              >
+                میلادی
+              </button>
+              <button
+                type="button"
+                className={sourceCalendar === 'persian' ? 'active' : ''}
+                aria-pressed={sourceCalendar === 'persian'}
+                onClick={() => changeSourceCalendar('persian')}
+              >
+                خورشیدی
+              </button>
+            </div>
+
+            <button className="today-button" type="button" onClick={setToday}>
+              امروز
             </button>
           </div>
 
@@ -194,7 +286,10 @@ export default function App() {
               <span>ماه</span>
               <select
                 value={month}
-                onChange={(event) => setMonth(event.target.value)}
+                onChange={(event) => {
+                  setMonth(event.target.value)
+                  setCopyState('idle')
+                }}
                 dir={sourceCalendar === 'gregorian' ? 'ltr' : 'rtl'}
                 lang={sourceCalendar === 'persian' ? 'fa' : 'en'}
               >
@@ -259,27 +354,35 @@ export default function App() {
           <div className={`result-display ${converted ? '' : 'result-disabled'}`}>
             <div className="result-orbit" aria-hidden="true" />
             {converted ? (
-              targetCalendar === 'persian' ? (
-                <>
-                  <span className="result-label">هجری خورشیدی · Persian</span>
-                  <strong className="result-primary calendar-persian" lang="fa">
-                    {formatPersianLong(converted)}
-                  </strong>
-                  <span className="result-numeric calendar-persian" dir="rtl" lang="fa">
-                    {formatNumericDate(converted, 'persian')}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span className="result-label">میلادی · Gregorian</span>
-                  <strong className="result-primary calendar-gregorian" dir="ltr" lang="en">
-                    {formatGregorianLong(converted)}
-                  </strong>
-                  <span className="result-numeric calendar-gregorian" dir="ltr" lang="en">
-                    {formatNumericDate(converted, 'gregorian')}
-                  </span>
-                </>
-              )
+              <>
+                <span className="result-label">
+                  {targetCalendar === 'persian' ? 'هجری خورشیدی · Persian' : 'میلادی · Gregorian'}
+                </span>
+
+                <strong
+                  className={`result-primary ${targetCalendar === 'persian' ? 'calendar-persian' : 'calendar-gregorian'}`}
+                  dir={targetCalendar === 'gregorian' ? 'ltr' : 'rtl'}
+                  lang={targetCalendar === 'persian' ? 'fa' : 'en'}
+                >
+                  {resultLong}
+                </strong>
+
+                <span
+                  className={`result-weekday ${targetCalendar === 'persian' ? 'calendar-persian' : 'calendar-gregorian'}`}
+                  dir={targetCalendar === 'gregorian' ? 'ltr' : 'rtl'}
+                  lang={targetCalendar === 'persian' ? 'fa' : 'en'}
+                >
+                  {resultWeekday}
+                </span>
+
+                <span
+                  className={`result-numeric ${targetCalendar === 'persian' ? 'calendar-persian' : 'calendar-gregorian'}`}
+                  dir={targetCalendar === 'persian' ? 'rtl' : 'ltr'}
+                  lang={targetCalendar === 'persian' ? 'fa' : 'en'}
+                >
+                  {resultNumeric}
+                </span>
+              </>
             ) : (
               <>
                 <span className="result-label">
@@ -289,6 +392,26 @@ export default function App() {
                 <span className="result-numeric">—</span>
               </>
             )}
+          </div>
+
+          <div className="result-actions">
+            <button
+              type="button"
+              className={`action-button action-primary ${copyState === 'copied' ? 'success' : ''}`}
+              onClick={copyResult}
+              disabled={!converted}
+            >
+              {copyState === 'copied' ? 'کپی شد ✓' : copyState === 'error' ? 'کپی نشد' : 'کپی نتیجه'}
+            </button>
+
+            <button
+              type="button"
+              className="action-button"
+              onClick={() => changeSourceCalendar(targetCalendar)}
+              disabled={!converted}
+            >
+              مبدأ کن
+            </button>
           </div>
 
           <div className="result-meta" dir="ltr">
