@@ -47,4 +47,8 @@ describe('Civil Hijri conversion', () => {
   it('rejects impossible dates', () => {
     expect(validateHijriDate({ year: 1446, month: 2, day: 30 })).not.toBeNull()
   })
+
+  it('rejects Gregorian dates before the Hijri epoch', () => {
+    expect(() => gregorianToHijri({ year: 622, month: 7, day: 18 })).toThrow(RangeError)
+  })
 })
