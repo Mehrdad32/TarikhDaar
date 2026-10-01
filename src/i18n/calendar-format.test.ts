@@ -4,6 +4,7 @@ import {
   formatGregorianLong,
   formatNumericDate,
   formatPersianLong,
+  formatWeekday,
 } from './calendar-format'
 
 describe('calendar-aware formatting', () => {
@@ -17,6 +18,13 @@ describe('calendar-aware formatting', () => {
     const date = { year: 1991, month: 1, day: 2 }
     expect(formatGregorianLong(date)).toBe('2 January 1991')
     expect(formatNumericDate(date, 'gregorian')).toBe('1991/01/02')
+  })
+
+  it('formats weekday names for the target calendar language', () => {
+    const date = { year: 1991, month: 1, day: 2 }
+
+    expect(formatWeekday(date, 'gregorian')).toBe('Wednesday')
+    expect(formatWeekday(date, 'persian')).toBe('چهارشنبه')
   })
 
   it('reserves Arabic-Indic digits for Hijri dates', () => {
