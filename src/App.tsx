@@ -440,6 +440,7 @@ export default function App() {
                 onChange={(event) => updateDay(event.target.value)}
                 inputMode="numeric"
                 autoComplete="off"
+                dir="ltr"
                 aria-invalid={Boolean(displayError)}
                 lang={calendarMeta[sourceCalendar].lang}
               />
@@ -479,6 +480,7 @@ export default function App() {
                 onChange={(event) => updateYear(event.target.value)}
                 inputMode="numeric"
                 autoComplete="off"
+                dir="ltr"
                 aria-invalid={Boolean(displayError)}
                 lang={calendarMeta[sourceCalendar].lang}
               />
