@@ -112,6 +112,12 @@ export function getPersianDaysInMonth(year: number, month: number): number {
   return isPersianLeapYear(year) ? 30 : 29
 }
 
+export const MAX_ROUND_TRIP_PERSIAN_DATE: CalendarDate = {
+  year: 3177,
+  month: 10,
+  day: 11,
+}
+
 export function validatePersianDate(date: CalendarDate): string | null {
   if (!Number.isInteger(date.year) || date.year < 1 || date.year > 3177) {
     return 'سال خورشیدی باید عددی بین 1 تا 3177 باشد.'
@@ -124,6 +130,19 @@ export function validatePersianDate(date: CalendarDate): string | null {
   const maxDay = getPersianDaysInMonth(date.year, date.month)
   if (!Number.isInteger(date.day) || date.day < 1 || date.day > maxDay) {
     return `ماه انتخاب‌شده در سال ${date.year} فقط ${maxDay} روز دارد.`
+  }
+
+  if (
+    date.year === MAX_ROUND_TRIP_PERSIAN_DATE.year &&
+    (
+      date.month > MAX_ROUND_TRIP_PERSIAN_DATE.month ||
+      (
+        date.month === MAX_ROUND_TRIP_PERSIAN_DATE.month &&
+        date.day > MAX_ROUND_TRIP_PERSIAN_DATE.day
+      )
+    )
+  ) {
+    return 'بازه فعلی تبدیل خورشیدی تا 3177/10/11 پشتیبانی می‌شود.'
   }
 
   return null
