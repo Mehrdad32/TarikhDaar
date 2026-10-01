@@ -11,3 +11,8 @@ Thumbs.db
 # Tauri / Rust
 src-tauri/target/
 src-tauri/icons/
+
+# Generated brand icons
+public/icon-32.png
+public/icon-192.png
+public/icon-512.png
