@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   calendarDigitSystem,
   formatGregorianLong,
+  formatHijriLong,
   formatNumericDate,
   formatPersianLong,
   formatWeekday,
@@ -20,15 +21,21 @@ describe('calendar-aware formatting', () => {
     expect(formatNumericDate(date, 'gregorian')).toBe('1991/01/02')
   })
 
-  it('formats weekday names for the target calendar language', () => {
+  it('formats Hijri dates with Arabic text and Arabic-Indic digits', () => {
+    const date = { year: 1411, month: 6, day: 15 }
+    expect(formatHijriLong(date)).toBe('١٥ جمادى الآخرة ١٤١١')
+    expect(formatNumericDate(date, 'hijri')).toBe('١٤١١/٠٦/١٥')
+  })
+
+  it('formats weekday names for each calendar language', () => {
     const date = { year: 1991, month: 1, day: 2 }
 
     expect(formatWeekday(date, 'gregorian')).toBe('Wednesday')
     expect(formatWeekday(date, 'persian')).toBe('چهارشنبه')
+    expect(formatWeekday(date, 'hijri')).toBe('الأربعاء')
   })
 
   it('reserves Arabic-Indic digits for Hijri dates', () => {
     expect(calendarDigitSystem('hijri')).toBe('arabic')
-    expect(formatNumericDate({ year: 1411, month: 6, day: 16 }, 'hijri')).toBe('١٤١١/٠٦/١٦')
   })
 })
