@@ -36,6 +36,13 @@ describe('Persian date validation', () => {
     expect(validatePersianDate({ year: 1400, month: 12, day: 30 })).toBe('ماه انتخاب‌شده در سال 1400 فقط 29 روز دارد.')
   })
 
+  it('enforces the round-trip-safe upper boundary', () => {
+    expect(validatePersianDate({ year: 3177, month: 10, day: 11 })).toBeNull()
+    expect(validatePersianDate({ year: 3177, month: 10, day: 12 })).toBe(
+      'بازه فعلی تبدیل خورشیدی تا 3177/10/11 پشتیبانی می‌شود.',
+    )
+  })
+
   it('accepts the product reference date', () => {
     expect(validatePersianDate({ year: 1369, month: 10, day: 12 })).toBeNull()
   })
