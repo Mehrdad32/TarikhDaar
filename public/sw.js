@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tarikhdaar-v6-alpha5'
+const CACHE_NAME = 'tarikhdaar-v6-alpha5-brand2'
 const PRECACHE = ["/", "/manifest.webmanifest", "/favicon.svg"] // __PRECACHE_ASSETS__
 
 self.addEventListener('install', (event) => {
