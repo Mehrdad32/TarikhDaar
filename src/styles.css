@@ -784,3 +784,120 @@ button {
 .result-numeric.calendar-persian {
   letter-spacing: 0.02em;
 }
+
+
+/* Phase 3 product interactions */
+.source-controls {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.source-controls .calendar-switch {
+  flex: 1;
+  width: auto;
+  margin-top: 0;
+}
+
+.today-button,
+.action-button {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.026);
+  color: #a1a1aa;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    color 140ms ease,
+    transform 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.today-button {
+  min-width: 74px;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.today-button:hover,
+.action-button:hover:not(:disabled) {
+  border-color: rgba(52, 211, 153, 0.24);
+  background: rgba(52, 211, 153, 0.045);
+  color: #d1fae5;
+}
+
+.today-button:active,
+.action-button:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.result-weekday {
+  margin-top: 7px;
+  color: rgba(167, 243, 208, 0.78);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.result-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.action-button {
+  min-height: 38px;
+  padding: 0 14px;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.action-button.action-primary {
+  border-color: rgba(52, 211, 153, 0.16);
+  background: rgba(52, 211, 153, 0.045);
+  color: #a7f3d0;
+}
+
+.action-button.action-primary.success {
+  border-color: rgba(52, 211, 153, 0.34);
+  background: rgba(52, 211, 153, 0.1);
+  color: #d1fae5;
+  box-shadow: 0 0 22px rgba(52, 211, 153, 0.05);
+}
+
+@media (max-width: 600px) {
+  .source-controls {
+    margin-top: 16px;
+  }
+
+  .today-button {
+    min-width: 68px;
+    font-size: 11px;
+  }
+
+  .result-actions {
+    margin-top: 9px;
+  }
+
+  .action-button {
+    min-height: 42px;
+  }
+}
+
+@media (max-width: 390px) {
+  .source-controls {
+    flex-direction: column;
+  }
+
+  .today-button {
+    min-height: 40px;
+  }
+}
