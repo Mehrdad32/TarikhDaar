@@ -4,12 +4,13 @@
   "version": "6.0.0-alpha.5",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build && node scripts/inject-sw-assets.mjs",
+    "dev": "npm run icons && vite",
+    "build": "npm run icons && tsc -b && vite build && node scripts/inject-sw-assets.mjs",
     "test": "vitest run",
     "desktop:dev": "tauri dev",
-    "desktop:icons": "tauri icon public/favicon.svg",
-    "desktop:build": "tauri build"
+    "desktop:icons": "npm run icons && tauri icon public/icon-512.png",
+    "desktop:build": "tauri build",
+    "icons": "node scripts/generate-brand-icons.mjs"
   },
   "dependencies": {
     "react": "19.3.0",
@@ -24,6 +25,7 @@
     "typescript": "7.0.2",
     "vite": "8.3.1",
     "vitest": "5.0.0",
-    "@tauri-apps/cli": "2.12.0"
+    "@tauri-apps/cli": "2.12.0",
+    "sharp": "0.35.5"
   }
 }
