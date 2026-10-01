@@ -60,13 +60,29 @@ export default function App() {
       : validatePersianDate(sourceDate)
   }, [day, month, sourceCalendar, sourceDate, year])
 
-  const converted = useMemo(() => {
-    if (validationError) return null
+  const conversion = useMemo(() => {
+    if (validationError) {
+      return { date: null as CalendarDate | null, error: null as string | null }
+    }
 
-    return sourceCalendar === 'gregorian'
-      ? gregorianToPersian(sourceDate)
-      : persianToGregorian(sourceDate)
+    try {
+      const date = sourceCalendar === 'gregorian'
+        ? gregorianToPersian(sourceDate)
+        : persianToGregorian(sourceDate)
+
+      return { date, error: null as string | null }
+    } catch (error) {
+      console.error('Date conversion failed safely:', error)
+
+      return {
+        date: null as CalendarDate | null,
+        error: 'این تاریخ در بازه فعلی موتور تبدیل پشتیبانی نمی‌شود.',
+      }
+    }
   }, [sourceCalendar, sourceDate, validationError])
+
+  const converted = conversion.date
+  const displayError = validationError ?? conversion.error
 
   const monthNames = sourceCalendar === 'gregorian' ? gregorianMonthNames : persianMonthNames
   const targetCalendar: CalendarKind = sourceCalendar === 'gregorian' ? 'persian' : 'gregorian'
@@ -74,7 +90,7 @@ export default function App() {
   function changeSourceCalendar(next: CalendarKind) {
     if (next === sourceCalendar) return
 
-    if (!validationError && converted) {
+    if (!displayError && converted) {
       const nextFields = toFields(converted, next)
       setDay(nextFields.day)
       setMonth(nextFields.month)
@@ -114,7 +130,7 @@ export default function App() {
           <span className="status-dot" aria-hidden="true" />
           <span>LOCAL / OFFLINE</span>
           <span className="status-divider" aria-hidden="true">·</span>
-          <span>V6 ALPHA.2</span>
+          <span>V6 ALPHA.2.1</span>
         </div>
       </header>
 
@@ -169,7 +185,7 @@ export default function App() {
                 onChange={(event) => updateDay(event.target.value)}
                 inputMode="numeric"
                 autoComplete="off"
-                aria-invalid={Boolean(validationError)}
+                aria-invalid={Boolean(displayError)}
                 lang={sourceCalendar === 'persian' ? 'fa' : 'en'}
               />
             </label>
@@ -205,17 +221,17 @@ export default function App() {
                 onChange={(event) => updateYear(event.target.value)}
                 inputMode="numeric"
                 autoComplete="off"
-                aria-invalid={Boolean(validationError)}
+                aria-invalid={Boolean(displayError)}
                 lang={sourceCalendar === 'persian' ? 'fa' : 'en'}
               />
             </label>
           </div>
 
           <div className="panel-footer">
-            {validationError ? (
+            {displayError ? (
               <p className="validation-message" role="alert">
                 <span className="message-icon" aria-hidden="true">!</span>
-                {validationError}
+                {displayError}
               </p>
             ) : (
               <p className="input-hint">
