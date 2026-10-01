@@ -1,0 +1,38 @@
+{
+  "id": "/",
+  "name": "TarikhDaar — تاریخ‌دار",
+  "short_name": "TarikhDaar",
+  "description": "تبدیل سریع و آفلاین تاریخ میان تقویم‌های خورشیدی، میلادی و هجری قمری.",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "background_color": "#07090d",
+  "theme_color": "#07090d",
+  "orientation": "any",
+  "categories": ["utilities", "productivity"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "دانلود و استفاده آفلاین",
+      "short_name": "دانلود",
+      "url": "/#download",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ]
+}
