@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "TarikhDaar",
-  "version": "6.0.0-alpha.4",
+  "version": "6.0.0-alpha.5",
   "identifier": "ir.mehrdad32.tarikhdaar",
   "build": {
     "beforeDevCommand": "npm run dev",

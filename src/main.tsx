@@ -9,3 +9,14 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 )
+
+if (
+  'serviceWorker' in navigator
+  && (window.location.protocol === 'https:' || window.location.protocol === 'http:')
+) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((error) => {
+      console.warn('TarikhDaar service worker registration failed:', error)
+    })
+  })
+}
