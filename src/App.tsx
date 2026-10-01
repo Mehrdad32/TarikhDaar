@@ -36,6 +36,7 @@ import {
   type AppSettings,
   type HijriAdjustment,
 } from './settings/settings'
+import DownloadCenter from './DownloadCenter'
 import './styles.css'
 
 type CalendarKind = 'gregorian' | 'persian' | 'hijri'
@@ -135,11 +136,18 @@ export default function App() {
     loadSettings(typeof window === 'undefined' ? null : window.localStorage),
   )
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [downloadOpen, setDownloadOpen] = useState(() => typeof window !== 'undefined' && window.location.hash === '#download')
   const [copyFeedback, setCopyFeedback] = useState<CopyFeedback>(null)
 
   useEffect(() => {
     saveSettings(settings, typeof window === 'undefined' ? null : window.localStorage)
   }, [settings])
+
+  useEffect(() => {
+    const onHashChange = () => setDownloadOpen(window.location.hash === '#download')
+    window.addEventListener('hashchange', onHashChange)
+    return () => window.removeEventListener('hashchange', onHashChange)
+  }, [])
 
   useEffect(() => {
     if (!settingsOpen) return
@@ -296,6 +304,21 @@ export default function App() {
     }
   }
 
+  function openDownloadCenter() {
+    if (window.location.hash !== '#download') {
+      window.location.hash = 'download'
+    } else {
+      setDownloadOpen(true)
+    }
+  }
+
+  function closeDownloadCenter() {
+    if (window.location.hash === '#download') {
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`)
+    }
+    setDownloadOpen(false)
+  }
+
   async function copyResult(calendar: CalendarKind, date: CalendarDate) {
     if (!canonicalGregorian) return
 
@@ -337,8 +360,23 @@ export default function App() {
             <span className="status-dot" aria-hidden="true" />
             <span>LOCAL / OFFLINE</span>
             <span className="status-divider" aria-hidden="true">·</span>
-            <span>V6 ALPHA.4</span>
+            <span>V6 ALPHA.5</span>
           </div>
+
+          <button
+            type="button"
+            className="download-trigger"
+            onClick={openDownloadCenter}
+            aria-label="دانلود و استفاده آفلاین"
+            title="دانلود و استفاده آفلاین"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3v12" />
+              <path d="m7 10 5 5 5-5" />
+              <path d="M5 21h14" />
+            </svg>
+            <span>دانلود</span>
+          </button>
 
           <button
             type="button"
@@ -592,8 +630,12 @@ export default function App() {
 
       <footer className="app-footer">
         <span>Fast · Offline · Private</span>
-        <span dir="ltr">Mehrdad32 / TarikhDaar</span>
+        <a href="https://mehrdad32.ir" target="_blank" rel="noreferrer" dir="ltr">
+          Mehrdad32.ir / TarikhDaar ↗
+        </a>
       </footer>
+
+      <DownloadCenter open={downloadOpen} onClose={closeDownloadCenter} />
 
       {settingsOpen && (
         <div
