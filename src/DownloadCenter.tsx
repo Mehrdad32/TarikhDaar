@@ -13,7 +13,7 @@ interface DownloadCenterProps {
   onClose(): void
 }
 
-const RELEASE_VERSION = '6.0.0-alpha.4'
+const RELEASE_VERSION = '6.0.0-alpha.5'
 const RELEASE_BASE = `https://github.com/Mehrdad32/TarikhDaar/releases/download/v${RELEASE_VERSION}`
 const SETUP_URL = `${RELEASE_BASE}/TarikhDaar_${RELEASE_VERSION}_x64-setup.exe`
 const PORTABLE_URL = `${RELEASE_BASE}/TarikhDaar_${RELEASE_VERSION}_x64_portable.exe`
