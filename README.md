@@ -2,6 +2,8 @@
 
 TarikhDaar is an open-source, offline-first date converter by Mehrdad32.
 
+Temp link to test: https://tarikhdaar.pages.dev/
+
 ## Current Alpha
 
 - Gregorian ↔ Persian (Solar Hijri)
