@@ -2,7 +2,7 @@
 
 TarikhDaar is an open-source, offline-first date converter by Mehrdad32.
 
-Temp link to test: https://tarikhdaar.pages.dev/
+**Official website:** [tarikhdaar.mehrdad32.ir](https://tarikhdaar.mehrdad32.ir/)
 
 ## Current Alpha
 
